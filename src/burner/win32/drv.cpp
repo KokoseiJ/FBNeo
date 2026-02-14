@@ -33,6 +33,42 @@ static bool bSaveRAM = false;
 
 static INT32 nNeoCDZnAudSampleRateSave = 0;
 
+int enableFreeplay()
+{
+	int dipOffset = 0;
+	int switchFound = 0;
+	BurnDIPInfo dipSwitch;
+
+	for (int i = 0; !switchFound && BurnDrvGetDIPInfo(&dipSwitch, i) == 0; i++) {
+		if (dipSwitch.nFlags == 0xF0) {
+			dipOffset = dipSwitch.nInput;
+		}
+		if (dipSwitch.szText && (strcasecmp(dipSwitch.szText, "freeplay") == 0
+			|| strcasecmp(dipSwitch.szText, "free play") == 0)) {
+			// Found freeplay. Is it a group or the actual switch?
+			if (dipSwitch.nFlags & 0x40) {
+				// It's a group. Find the switch
+				for (int j = i + 1; !switchFound && BurnDrvGetDIPInfo(&dipSwitch, j) == 0 && !(dipSwitch.nFlags & 0x40); j++) {
+					if (dipSwitch.szText && strcasecmp(dipSwitch.szText, "on") == 0) {
+						// Found the switch
+						switchFound = 1;
+					}
+				}
+			} else {
+				// It's a switch
+				switchFound = 1;
+			}
+		}
+	}
+
+	if (switchFound) {
+		struct GameInp *pgi = GameInp + dipSwitch.nInput + dipOffset;
+		pgi->Input.Constant.nConst = (pgi->Input.Constant.nConst & ~dipSwitch.nMask) | (dipSwitch.nSetting & dipSwitch.nMask);
+	}
+
+	return switchFound;
+}
+
 static int DrvBzipOpen()
 {
 	BzipOpen(false);
@@ -228,6 +264,8 @@ int DrvInit(int nDrvNum, bool bRestore)
 	}
 	InputMake(true);
 	GameInpDefault();
+
+	enableFreeplay();
 
 	if (kNetGame) {
 		nBurnCPUSpeedAdjust = 0x0100;

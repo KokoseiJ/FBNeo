@@ -206,7 +206,8 @@ INT32 GamcMisc(struct GameInp* pgi, char* szi, INT32 nPlayer)
 				return 0;
 			}
 			if (strcmp(szi, "p1 coin" ) == 0) {
-				KEY(FBK_5);
+				// Map coin button too in case freeplay dipsw doesnt work?
+				KEY(nJoyBase + 0x80 + 7);
 				return 0;
 			}
 
@@ -502,7 +503,7 @@ INT32 GamcMisc(struct GameInp* pgi, char* szi, INT32 nPlayer)
 				return 0;
 			}
 			if (strcmp(szi, "p2 coin" ) == 0) {
-				KEY(FBK_6);
+				KEY(nJoyBase + 0x80 + 7);
 				return 0;
 			}
 			break;
