@@ -9,6 +9,10 @@ static char szPlay[4][4]={"p1 ", "p2 ", "p3 ", "p4 "};
 // Configure the misc game controls
 INT32 GamcMisc(struct GameInp* pgi, char* szi, INT32 nPlayer)
 {
+	// Used for Start button
+	INT32 nJoyBase = 0x4000;
+	nJoyBase |= nPlayer << 8;
+
 	switch (nPlayer) {
 		case 0:
 			// Set general controls according to Player 1 settings
@@ -193,7 +197,8 @@ INT32 GamcMisc(struct GameInp* pgi, char* szi, INT32 nPlayer)
 
 			// Player 1 controls
 			if (strcmp(szi, "p1 start") == 0) {
-				KEY(FBK_1);
+				// 0x80 for buttons and button 8 for start
+				KEY(nJoyBase + 0x80 + 7);
 				return 0;
 			}
 			if (strcmp(szi, "p1 select" ) == 0) {
@@ -489,7 +494,7 @@ INT32 GamcMisc(struct GameInp* pgi, char* szi, INT32 nPlayer)
 			break;
 		case 1:
 			if (strcmp(szi, "p2 start") == 0) {
-				KEY(FBK_2);
+				KEY(nJoyBase + 0x80 + 7);
 				return 0;
 			}
 			if (strcmp(szi, "p2 select" ) == 0) {
@@ -824,17 +829,42 @@ INT32 GamcPlayer(struct GameInp* pgi, char* szi, INT32 nPlayer, INT32 nDevice)
 	nJoyBase = 0x4000;
 	nJoyBase |= nDevice << 8;
 
+	UINT8 joyButtonLayout[] = {
+		0x82, // P1
+		0x83, // P2
+		0x85, // P3
+		0x80, // K1
+		0x81, // K2
+		0x04, // K3
+		0x84, // P4
+		0x05, // K4
+	};
+
+	UINT8 joy4ButtonLayout[] = {
+		0x80, // K1
+		0x82, // P1
+		0x83, // P2
+		0x85, // P3
+		0x81, // K2
+		0x04, // K3
+		0x84, // P4
+		0x05, // K4
+	};
+
+	// 0x10 + [0-3] is hat / D-Pad
+	// 0x00 ~ 0x03 is joystick 
+
 	if (strcmp(szi, "up") == 0)	{
-		KEY(nJoyBase + 0x02)
+		KEY(nJoyBase + 0x12)
 	}
 	if (strcmp(szi, "down") == 0) {
-		KEY(nJoyBase + 0x03)
+		KEY(nJoyBase + 0x13)
 	}
 	if (strcmp(szi, "left") == 0)	{
-		KEY(nJoyBase + 0x00)
+		KEY(nJoyBase + 0x10)
 	}
 	if (strcmp(szi, "right") == 0) {
-		KEY(nJoyBase + 0x01)
+		KEY(nJoyBase + 0x11)
 	}
 	if (strncmp(szi, "fire ", 5) == 0) {
 		char *szb = szi + 5;
@@ -842,7 +872,12 @@ INT32 GamcPlayer(struct GameInp* pgi, char* szi, INT32 nPlayer, INT32 nDevice)
 		if (nButton >= 1) {
 			nButton--;
 		}
-		KEY(nJoyBase + 0x80 + nButton);
+
+		if (nFireButtons == 4) {
+			KEY(nJoyBase + joy4ButtonLayout[nButton]);
+		} else {
+			KEY(nJoyBase + joyButtonLayout[nButton]);
+		}
 	}
 
 	return 0;
