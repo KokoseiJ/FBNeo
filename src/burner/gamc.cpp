@@ -874,11 +874,14 @@ INT32 GamcPlayer(struct GameInp* pgi, char* szi, INT32 nPlayer, INT32 nDevice)
 			nButton--;
 		}
 
+		/*
 		if (nFireButtons == 4) {
 			KEY(nJoyBase + joy4ButtonLayout[nButton]);
 		} else {
 			KEY(nJoyBase + joyButtonLayout[nButton]);
 		}
+		*/
+		KEY(nJoyBase + joyButtonLayout[nButton]);
 	}
 
 	return 0;
